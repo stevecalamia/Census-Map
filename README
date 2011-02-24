@@ -1,0 +1,6 @@
+Changes:
+
+2011 02 24: sjc: 
+  replaced $(document.getElementById("someelement")) with $("#someelement")
+  replaced document.getElementById("someelement").innerHTML("<html/>") with $("#someelement").html("<html/>")
+                          
