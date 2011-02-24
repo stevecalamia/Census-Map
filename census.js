@@ -1,11 +1,10 @@
 var xVersion = 3;
 var G = google.maps;
-var fc = 0;
+var fc = 1;
 var zoom = 4; //4-12 are valid, 12 is all the way in, 4 is zoomed all the way out.
 var centerPoint = new G.LatLng(39.1, -92.767578);
 var xKML = 0;
 var xProperty = 0;
-fc = 1; //SJC: Where did this come from? How was it defined? if this is an implicit declaration then this may break in IE
 var container;
 var map;
 var geocoder;
@@ -67,6 +66,8 @@ var overlayMaps = [
     tileSize: new google.maps.Size(256, 256),
     isPng: true
 }];
+var xHeadlines = Array('', 'Percent hispanic population 2010', '2010 Population per square mile', 'Percent change in total population 2010-2000', 'USA TODAY Diversity Index 2010', 'Percent housing units vacant 2010', 'Largest minority excluding white, not hispanic');
+var xZoomChatters = Array('', '', '', '', 'Zoom for more detail. Color coded by county. Click to get state information.', 'Zoom for more detail. Color coded by county. Click to get county information.', 'Zoom for more detail. Color coded by county. Click to get county information.', 'Zoom for more detail. Color coded by county. Click to get county information.', 'Color coded by tract. Click to get county information.', 'Color coded by tract. Click to get tract information.', 'Color coded by tract. Click to get tract information.', 'Color coded by tract. Click to get tract information.', 'Color coded by tract. Click to get tract information.');
 var xListArray = {
     '4': {
         "xmin": 2,
@@ -681,7 +682,7 @@ function load() {
             style: google.maps.ZoomControlStyle.LARGE,
             position: google.maps.ControlPosition.LEFT_CENTER
         }
-    }
+    };
     map = new G.Map(container, myOptions);
     geocoder = new google.maps.Geocoder();
     map.overlayMapTypes.push(null);
@@ -698,7 +699,7 @@ function load() {
     var xActive = new google.maps.ImageMapType(cjMaps[0]);
     map.overlayMapTypes.setAt(0, xActive);
     google.maps.event.addListener(map, 'zoom_changed', function () {
-        zoomLevel = map.getZoom();
+        var zoomLevel = map.getZoom();
         log( zoomLevel );
         $("#zoom_div").html("Zoom: " + zoomLevel);
         $("#xChatter").html(xZoomChatters[zoomLevel]);
@@ -722,6 +723,10 @@ function load() {
     });
 }
 
+$(document).ready(function(){
+        load();
+});
+
 
 function ChangeLabelVis(xitem) {
     log( xitem.checked );
@@ -734,7 +739,7 @@ function ChangeLabelVis(xitem) {
 }
 
 function getData(state, county, third, postal, statename, latlng) {
-    StateFips = {
+    var StateFips = {
         'AL': 1,
         'DE': 10,
         'DC': 11,
@@ -789,14 +794,14 @@ function getData(state, county, third, postal, statename, latlng) {
         'CO': 8,
         'CT': 9
     };
-    x = latlng.lng();
-    y = latlng.lat();
-    zoom = map.getZoom();
-    xURL = 'get_data.php?z=' + zoom + '&sf=' + StateFips[state] + '&xd=' + datatype + '&cn=' + county + '&x=' + x + '&y=' + y;
+    var x = latlng.lng();
+    var y = latlng.lat();
+    var zoom = map.getZoom();
+    var xURL = 'get_data.php?z=' + zoom + '&sf=' + StateFips[state] + '&xd=' + datatype + '&cn=' + county + '&x=' + x + '&y=' + y;
 switch (datatype) {
     case 1://  HISPANIC
         $.get(xURL, function (data) {
-            if ((data != '') && (activeClick)) {
+            if ((data !== '') && (activeClick)) {
                 $('#data_box_1').dialog('open');
                 data = data.split("~");
                 if (data.length >= 7) {
@@ -810,14 +815,14 @@ switch (datatype) {
                     $("#h8").html(data[5] + '%');
                     activeClick = 0;
                     DrawKML(zoom, data[8]);
-                } else {}
-            } else {}
+                }
+            }
         });
         break;
     case 2:
     case 3://  POPULTION CHANGE and DENSITY
         $.get(xURL, function (data) {
-            if ((data != '') && (activeClick)) {
+            if ((data !== '') && (activeClick)) {
                 $('#data_box_3').dialog('open');
                 data = data.split("~");
                 $("#side_bar_3").css("visibility", "visible");
@@ -858,13 +863,13 @@ switch (datatype) {
                 $("#x36").html(data[20] + '%');
                 DrawKML(zoom, data[22]);
                 activeClick = 0;
-            } else {}
+            }
         });
         break;
 
     case 4://  DIVERSITY
         $.get(xURL, function (data) {
-            if ((data != '') && (activeClick)) {
+            if ((data !== '') && (activeClick)) {
                 $('#data_box_4').dialog('open');
                 data = data.split("~");
                 $("#side_bar_4").css("visibility", "visible");
@@ -881,7 +886,7 @@ switch (datatype) {
         break;
     case 5://  VACANCY RATE
         $.get(xURL, function (data) {
-            if ((data != '') && (activeClick)) {
+            if ((data !== '') && (activeClick)) {
                 //Indiana~6483802~6.63~2795541~10.49~89.51
                 data = data.split("~");
                 $('#data_box_5').dialog('open');
@@ -900,7 +905,7 @@ switch (datatype) {
         break;
     case 6://  largest minority
         $.get(xURL, function (data) {
-            if ((data != '') && (activeClick)) {
+            if ((data !== '') && (activeClick)) {
                 $('#data_box_6').dialog('open');
                 data = data.split("~");
                 if ((data.length >= 11) && (data[9] > 0)) {
@@ -914,7 +919,7 @@ switch (datatype) {
                     $("#p5").css("background-image", "url('" + ximage + "')");
                     activeClick = 0;
                     DrawKML(zoom, data[12]);
-                } else {}
+                }
             }
         });
         break;
@@ -945,7 +950,7 @@ function getClickLocation(latlng) {
     geocoder.geocode({
         'latLng': latlng
     }, function (result, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
+        if (status === google.maps.GeocoderStatus.OK) {
             if (result[1]) {
                 state = '';
                 county = '';
@@ -1063,9 +1068,6 @@ function InputAddress(xChoice) {
         }
     });
 }
-window.onload = load;
-xHeadlines = Array('', 'Percent hispanic population 2010', '2010 Population per square mile', 'Percent change in total population 2010-2000', 'USA TODAY Diversity Index 2010', 'Percent housing units vacant 2010', 'Largest minority excluding white, not hispanic');
-xZoomChatters = Array('', '', '', '', 'Zoom for more detail. Color coded by county. Click to get state information.', 'Zoom for more detail. Color coded by county. Click to get county information.', 'Zoom for more detail. Color coded by county. Click to get county information.', 'Zoom for more detail. Color coded by county. Click to get county information.', 'Color coded by tract. Click to get county information.', 'Color coded by tract. Click to get tract information.', 'Color coded by tract. Click to get tract information.', 'Color coded by tract. Click to get tract information.', 'Color coded by tract. Click to get tract information.');
 //-------jquery UI
 $(function () {
     $('#dialog_link').mouseover(function () {
