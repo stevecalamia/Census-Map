@@ -8,15 +8,17 @@ var xProperty = 0;
 fc = 1; //SJC: Where did this come from? How was it defined? if this is an implicit declaration then this may break in IE
 var container;
 var map;
+var geocoder;
 var datatype = 1;
 var maptype = 2;
-var xTiles = new Array();
+var xTiles = []; 
 var xActive = 0;
 var opacity = 100;
 var category = 0; //1 = population, 2= race/eth, 3 = housing
 var dataChose = 0;
 var xMarker = 0;
 var activeClick = 0; //keeps track if you clicked map, before data comes back, did you zoom, if so, stop click action
+var info = $("#info_div"); //This way we only have to look up this location once.
 var stylez = [
 {
     featureType: "all",
@@ -39,6 +41,7 @@ var overlayMaps = [
 // These are simply ImageMapTypeOptions we keep to create ImageMapTypes on demand when checkboxes are clicked - opacity:0.9,
 {
     getTileUrl: function (coord, zoom) {
+            var apistyle = labelStyleOut;
             switch (zoom) {
                 case 6:
                         apistyle = 'p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
@@ -122,18 +125,19 @@ var xListArray = {
 };
 var cjMaps = [{
     getTileUrl: function (p, z) {
+        var url = '';
         if (((p.x < xListArray[z]['xmin']) || (p.x > xListArray[z]['xmax'])) || ((p.y < xListArray[z]['ymin']) || (p.y > xListArray[z]['ymax']))) {
-            var url = 'xmap/empty.gif';
+            url = 'xmap/empty.gif';
         } else {
             if (z >= 10) {
                 if (z >= 12) {
                     //high res tile
-                    var url = 'get_tile.php?tile=' + p.x + '-' + p.y + '-' + z + '.gif&xd=' + datatype;
+                    url = 'get_tile.php?tile=' + p.x + '-' + p.y + '-' + z + '.gif&xd=' + datatype;
                 } else {
-                    var url = 'tile/' + datatype + '/' + z + '/' + p.y + '/' + p.x + '-' + p.y + '-' + z + '.gif?xv=' + xVersion; //?r=' + Math.random();
+                    url = 'tile/' + datatype + '/' + z + '/' + p.y + '/' + p.x + '-' + p.y + '-' + z + '.gif?xv=' + xVersion; //?r=' + Math.random();
                 }
             } else {
-                var url = 'tile/' + datatype + '/' + z + '/' + p.x + '-' + p.y + '-' + z + '.gif?xv=' + xVersion; //?r=' + Math.random();
+                url = 'tile/' + datatype + '/' + z + '/' + p.x + '-' + p.y + '-' + z + '.gif?xv=' + xVersion; //?r=' + Math.random();
             }
         }
         return url;
@@ -617,11 +621,6 @@ var PropertyArray = {
         "xlon": -93.390738,
         "zoom": 7
     },
-    'azcentral': {
-        "xlat": 33.451449,
-        "xlon": -112.071202,
-        "zoom": 7
-    },
     'wcsh6': {
         "xlat": 43.654032,
         "xlon": -70.262918,
@@ -656,7 +655,7 @@ var PropertyArray = {
 
 function DetermineCenter() {
     if (xProperty != 0) {
-        if (PropertyArray[xProperty] != undefined) {
+        if (PropertyArray[xProperty] !== undefined) {
             centerPoint = new G.LatLng(PropertyArray[xProperty]['xlat'], PropertyArray[xProperty]['xlon']);
             zoom = PropertyArray[xProperty]['zoom'];
         }
@@ -700,7 +699,7 @@ function load() {
     map.overlayMapTypes.setAt(0, xActive);
     google.maps.event.addListener(map, 'zoom_changed', function () {
         zoomLevel = map.getZoom();
-        //alert( zoomLevel );
+        log( zoomLevel );
         $("#zoom_div").html("Zoom: " + zoomLevel);
         $("#xChatter").html(xZoomChatters[zoomLevel]);
         activeClick = 0;
@@ -710,12 +709,12 @@ function load() {
     });
     if (fc) {
         google.maps.event.addListener(map, 'mouseup', function () {
-            $("#info_div").html(map.getCenter());
+            info.html(map.getCenter());
         });
     }
     clickDat(3);
     $("#xHelpBox").hide(); //hide help box
-    //------------------------------this is the functionality for the hover on the choose map type box
+    // this is the functionality for the hover on the choose map type box
     $("#xChooseBox").hover(
 
     function () {}, function () {
@@ -725,7 +724,7 @@ function load() {
 
 
 function ChangeLabelVis(xitem) {
-    //alert( xitem.checked );
+    log( xitem.checked );
     if (xitem.checked) {
         var overlayMap = new google.maps.ImageMapType(overlayMaps[0]);
         map.overlayMapTypes.setAt(1, overlayMap);
@@ -793,9 +792,30 @@ function getData(state, county, third, postal, statename, latlng) {
     x = latlng.lng();
     y = latlng.lat();
     zoom = map.getZoom();
-    if ((datatype == 3) || (datatype == 2)) {
-        //-----------------------------------------------------POPULTION CHANGE and DENSITY
-        xURL = 'get_data.php?z=' + zoom + '&sf=' + StateFips[state] + '&xd=' + datatype + '&cn=' + county + '&x=' + x + '&y=' + y;
+    xURL = 'get_data.php?z=' + zoom + '&sf=' + StateFips[state] + '&xd=' + datatype + '&cn=' + county + '&x=' + x + '&y=' + y;
+switch (datatype) {
+    case 1://  HISPANIC
+        $.get(xURL, function (data) {
+            if ((data != '') && (activeClick)) {
+                $('#data_box_1').dialog('open');
+                data = data.split("~");
+                if (data.length >= 7) {
+                    $("#side_bar_1").css("visibility", "visible");
+                    $("#hd_1").html(data[0].toUpperCase());
+                    $("#h2").html('2010 Population: ' + Comma(data[1]));
+                    $("#h3").html(data[2] + '%');
+                    $("#h6").css("width", 0.95 * data[3] + "px");
+                    $("#h7").html(data[3] + '%');
+                    $("#h7").css("left", ((0.95 * data[3]) + 14) + "px");
+                    $("#h8").html(data[5] + '%');
+                    activeClick = 0;
+                    DrawKML(zoom, data[8]);
+                } else {}
+            } else {}
+        });
+        break;
+    case 2:
+    case 3://  POPULTION CHANGE and DENSITY
         $.get(xURL, function (data) {
             if ((data != '') && (activeClick)) {
                 $('#data_box_3').dialog('open');
@@ -840,9 +860,9 @@ function getData(state, county, third, postal, statename, latlng) {
                 activeClick = 0;
             } else {}
         });
-    } else if (datatype == 4) {
-        //-----------------------------------------------------DIVERSITY
-        xURL = 'get_data.php?z=' + zoom + '&sf=' + StateFips[state] + '&xd=' + datatype + '&cn=' + county + '&x=' + x + '&y=' + y;
+        break;
+
+    case 4://  DIVERSITY
         $.get(xURL, function (data) {
             if ((data != '') && (activeClick)) {
                 $('#data_box_4').dialog('open');
@@ -858,9 +878,8 @@ function getData(state, county, third, postal, statename, latlng) {
                 activeClick = 0;
             } 
         });
-    } else if (datatype == 5) {
-        //-----------------------------------------------------VACANCY RATE
-        xURL = 'get_data.php?z=' + zoom + '&sf=' + StateFips[state] + '&xd=' + datatype + '&cn=' + county + '&x=' + x + '&y=' + y;
+        break;
+    case 5://  VACANCY RATE
         $.get(xURL, function (data) {
             if ((data != '') && (activeClick)) {
                 //Indiana~6483802~6.63~2795541~10.49~89.51
@@ -878,9 +897,8 @@ function getData(state, county, third, postal, statename, latlng) {
                 DrawKML(zoom, data[6]);
             }
         });
-    } else if (datatype == 6) {
-        //-----------------------------------------------------largest minority
-        xURL = 'get_data.php?z=' + zoom + '&sf=' + StateFips[state] + '&xd=' + datatype + '&cn=' + county + '&x=' + x + '&y=' + y;
+        break;
+    case 6://  largest minority
         $.get(xURL, function (data) {
             if ((data != '') && (activeClick)) {
                 $('#data_box_6').dialog('open');
@@ -899,28 +917,9 @@ function getData(state, county, third, postal, statename, latlng) {
                 } else {}
             }
         });
-    } else if (datatype == 1) {
-        //-----------------------------------------------------HISPANIC
-        xURL = 'get_data.php?z=' + zoom + '&sf=' + StateFips[state] + '&xd=' + datatype + '&cn=' + county + '&x=' + x + '&y=' + y;
-        $.get(xURL, function (data) {
-            if ((data != '') && (activeClick)) {
-                $('#data_box_1').dialog('open');
-                data = data.split("~");
-                if (data.length >= 7) {
-                    $("#side_bar_1").css("visibility", "visible");
-                    $("#hd_1").html(data[0].toUpperCase());
-                    $("#h2").html('2010 Population: ' + Comma(data[1]));
-                    $("#h3").html(data[2] + '%');
-                    $("#h6").css("width", 0.95 * data[3] + "px");
-                    $("#h7").html(data[3] + '%');
-                    $("#h7").css("left", ((0.95 * data[3]) + 14) + "px");
-                    $("#h8").html(data[5] + '%');
-                    activeClick = 0;
-                    DrawKML(zoom, data[8]);
-                } else {}
-            } else {}
-        });
-    } else {}
+        break;
+    default:
+    }
 }
 
 function DrawKML(zoom, fip) {
@@ -929,20 +928,20 @@ function DrawKML(zoom, fip) {
             xKML.setMap(null);
         }
         xURL = 'http://www2.indystar.com/images/graphics/hold/local/census/maptest/KML_export.php?z=' + zoom + '&fip=' + fip;
-        //alert( xURL );
+        log( xURL );
         xKML = new google.maps.KmlLayer(xURL, {
             preserveViewport: true,
             suppressInfoWindows: true,
             clickable: false
         });
-        //alert( xKML );
+        log( xKML );
         xKML.setMap(map);
     }
 }
 
 function getClickLocation(latlng) {
     activeClick = 1;
-    $("#info_div").html('');
+    info.html('');
     geocoder.geocode({
         'latLng': latlng
     }, function (result, status) {
@@ -971,7 +970,7 @@ function getClickLocation(latlng) {
                     }
                 }
                 if ((activeClick) && (county != '')) {
-                    //alert('getdata: ' + county);
+                    log('getdata: ' + county);
                     getData(state, county, third, postal, statename, latlng);
                     $("#side_bar_" + datatype).css("visibility", "hidden");
                     if (xKML != 0) {
@@ -979,22 +978,22 @@ function getClickLocation(latlng) {
                     }
                 } else {
                     if (activeClick) {
-                        $("#info_div").html('Error: Google could not pinpoint last click location');
+                        info.html('Error: Google could not pinpoint last click location');
                     }
                 }
             } else {
-                //alert("No results found");
-                $("#info_div").html('');
+                log("No results found");
+                info.html('');
             }
         } else {
-            //alert("Geocoder failed due to: " + status);
-            $("#info_div").html('');
+            log("Geocoder failed due to: " + status);
+            info.html('');
         }
     });
 }
 
 function xxFunction(theme) {
-    alert('xxFunction: ' + theme);
+    log('xxFunction: ' + theme);
 }
 
 function addOverlay(theme) {
@@ -1036,7 +1035,7 @@ function clickDat(xChoice) {
         ChangeDataType(datatype);
         $("#xTitle").html(xHeadlines[datatype]);
         $("#xChatter").html(xZoomChatters[map.getZoom()]);
-        //alert( "images/key_"+ datatype +".png" );
+        log( "images/key_"+ datatype +".png" );
         $("#keybox").html('<img src="images/key_' + datatype + '.png" alt="" />');
     }
 }
@@ -1060,7 +1059,7 @@ function InputAddress(xChoice) {
                 animation: google.maps.Animation.DROP
             });
         } else {
-            alert("Geocode was not successful for the following reason: " + status);
+            log("Geocode was not successful for the following reason: " + status);
         }
     });
 }
@@ -1106,69 +1105,32 @@ $(function () {
     function () {}, function () {
         $("#xInfoBox").css("visibility", "hidden");
     });
-    $('#data_box_6').dialog({
-        autoOpen: false,
-        width: 300,
-        height: 200,
-        position: [50, 260],
-        close: function () {
-            if (xKML != 0) {
-                xKML.setMap(null);
-            }
+    height_arr = ['',120,'',270,100,135,200];
+    for (i=1; i <= 6; i++){
+        if (i != 2) {
+                $('#data_box_'+i).dialog({
+                    autoOpen: false,
+                    width: 300,
+                    height: height_arr[i],
+                    position: [50, 260],
+                    close: function () {
+                        if (xKML != 0) {
+                            xKML.setMap(null);
+                        }
+                    }
+                });
         }
-    });
-    $('#data_box_1').dialog({
-        autoOpen: false,
-        width: 300,
-        height: 120,
-        position: [50, 260],
-        close: function () {
-            if (xKML != 0) {
-                xKML.setMap(null);
-            }
-        }
-    });
-    $('#data_box_3').dialog({
-        autoOpen: false,
-        width: 300,
-        height: 270,
-        position: [50, 260],
-        close: function () {
-            if (xKML != 0) {
-                xKML.setMap(null);
-            }
-        }
-    });
-    $('#data_box_4').dialog({
-        autoOpen: false,
-        width: 300,
-        height: 100,
-        position: [50, 260],
-        close: function () {
-            if (xKML != 0) {
-                xKML.setMap(null);
-            }
-        }
-    });
-    $('#data_box_5').dialog({
-        autoOpen: false,
-        width: 300,
-        height: 135,
-        position: [50, 260],
-        close: function () {
-            if (xKML != 0) {
-                xKML.setMap(null);
-            }
-        }
-    });
+    }
 });
 
 function Comma(number) {
-    number = '' + number;
-    if (number.length > 3) {
-        var mod = number.length % 3;
-        var output = (mod > 0 ? (number.substring(0, mod)) : '');
-        for (i = 0; i < Math.floor(number.length / 3); i++) {
+        //This function takes an integer and returns a string formatted with comma separators.
+        //
+    number = '' + number; // implicitly convert number to a string
+    if (number.length > 3) { // if we have a 3 digit number or larger...
+        var mod = number.length % 3; //grab the remainder of that number divided by 3
+        var output = (mod > 0 ? (number.substring(0, mod)) : ''); //output = a substring consisting of the first [remainder of number/3] digits
+        for (i = 0; i < Math.floor(number.length / 3); i++) { //for every 3rd digit:
             if ((mod == 0) && (i == 0)) output += number.substring(mod + 3 * i, mod + 3 * i + 3);
             else
             output += ',' + number.substring(mod + 3 * i, mod + 3 * i + 3);
@@ -1178,3 +1140,10 @@ function Comma(number) {
     return number;
 }
 
+function log(msg) {
+    if (window.console) {
+        console.log(msg);
+    } else if ($("#info_box")) {
+            $("#info_box").html(msg);
+    }
+}
