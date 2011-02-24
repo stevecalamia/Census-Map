@@ -1,7 +1,7 @@
 var xVersion = 3;
 var G = google.maps;
 var fc = 0;
-var zoom = 4;
+var zoom = 4; //4-12 are valid, 12 is all the way in, 4 is zoomed all the way out.
 var centerPoint = new G.LatLng(39.1, -92.767578);
 var xKML = 0;
 var xProperty = 0;
@@ -17,14 +17,15 @@ var category = 0; //1 = population, 2= race/eth, 3 = housing
 var dataChose = 0;
 var xMarker = 0;
 var activeClick = 0; //keeps track if you clicked map, before data comes back, did you zoom, if so, stop click action
-//var stylez = [ { featureType: "poi", elementType: "all", stylers: [ { visibility: "off" } ] },{ featureType: "administrative", elementType: "all", stylers: [ { visibility: "off" } ] },{ featureType: "administrative.country", elementType: "all", stylers: [ { visibility: "on" } ] },{ featureType: "administrative.province", elementType: "geometry", stylers: [ { visibility: "on" }, { lightness: -60 } ] },{ featureType: "administrative.land_parcel", elementType: "all", stylers: [ { visibility: "on" } ] },{ featureType: "water", elementType: "all", stylers: [ { lightness: 54 } ] },{ featureType: "road", elementType: "all", stylers: [ { lightness: 64 }, { saturation: -100 } ] }, { featureType: "all", elementType: "labels", stylers: [ { visibility: "off" } ] } ];
-var stylez = [{
+var stylez = [
+{
     featureType: "all",
     elementType: "all",
     stylers: [{
         visibility: "off"
     }]
-}, {
+},
+{
     featureType: "water",
     elementType: "geometry",
     stylers: [{
@@ -33,30 +34,32 @@ var stylez = [{
         lightness: 50
     }]
 }];
-//http://mt1.googleapis.com/vt?lyrs=m@145&src=apiv3&hl=en-US&apistyle=p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04,s.t:19|s.e:l|p.v:on,s.t:18|s.e:l|p.v:on|p.g:0.59&x=33&y=50&z=7&s=Galil
 var labelStyleOut = 'p.v:off,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01,s.t:18|s.e:g|p.v:on|p.il:true|p.l:-100|p.g:0.01,s.t:17|s.e:g|p.v:on|p.il:true|p.l:41';
-//http://mt1.googleapis.com/vt?lyrs=m@145&src=apiv3&hl=en-US&apistyle=p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01&x=27&y=51&z=7&s=Gali
 var overlayMaps = [
 // These are simply ImageMapTypeOptions we keep to create ImageMapTypes on demand when checkboxes are clicked - opacity:0.9,
 {
     getTileUrl: function (coord, zoom) {
-        //return 'http://gisapps.co.union.nc.us:8080/geoserver/gwc/service/gmaps?layers=uc%3Afire_stations&zoom=' + zoom + '&x=' + coord.x + '&y=' + coord.y + '&format=image/png8';
-        //return 'http://mt1.google.com/vt/lyrs=h@142&hl=en&src=api&x=' + coord.x + '&y=' + coord.y + '&z=' + zoom;
-        if (zoom == 7) {
-            //apistyle = 'p.v:off,s.t:49|p.v:simplified|p.s:-100|p.g:0.01,s.t:1|s.e:l|p.v:on';
-            apistyle = 'p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
-        } else if (zoom == 6) {
-            apistyle = 'p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
-        } else if (zoom == 8) {
-            apistyle = 'p.v:off,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
-        } else if ((zoom == 9) || (zoom == 10)) {
-            apistyle = 'p.v:off,s.t:49|p.s:-100|p.g:0.01|p.v:simplified,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
-        } else if (zoom >= 11) {
-            apistyle = 'p.v:off,s.t:49|s.e:g|p.v:simplified|p.s:-100|p.g:0.01,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
-        } else {
-            apistyle = labelStyleOut;
-        }
-        return 'http://mt1.googleapis.com/vt?lyrs=h@142&src=apiv3&hl=en-US&apistyle=' + apistyle + '&x=' + coord.x + '&y=' + coord.y + '&z=' + zoom + '&s=Galile';
+												switch (zoom) {
+																case 6:
+																				apistyle = 'p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
+																				break;
+																case 7:
+																				apistyle = 'p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
+																				break;
+																case 8:
+																				apistyle = 'p.v:off,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
+																				break;
+																case 9:
+																case 10:
+																				apistyle = 'p.v:off,s.t:49|p.s:-100|p.g:0.01|p.v:simplified,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
+																				break;
+																case 11:
+																				apistyle = 'p.v:off,s.t:49|s.e:g|p.v:simplified|p.s:-100|p.g:0.01,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
+																				break;
+																default:
+            														apistyle = labelStyleOut;
+												}
+        								return 'http://mt1.googleapis.com/vt?lyrs=h@142&src=apiv3&hl=en-US&apistyle=' + apistyle + '&x=' + coord.x + '&y=' + coord.y + '&z=' + zoom + '&s=Galile';
     },
     tileSize: new google.maps.Size(256, 256),
     isPng: true
@@ -649,8 +652,6 @@ var PropertyArray = {
 //'hometownlife' : {"xlat" : , "xlon" : , "zoom" : 7 },
 //'lohud' : {"xlat" :, "xlon" : , "zoom" : 7 },
 //'centralohio' : {"xlat" :, "xlon" : , "zoom" : 7 },
-//
-//var PropertyArray = { 'indystar' : {"lat" : 39.93, "lon" : -86.08, "zoom" : 7 }, 'theadvertiser' : {"lat" : 31.41, "lon" : -91.92, "zoom" : 7 } };
 
 
 function DetermineCenter() {
@@ -664,7 +665,7 @@ function DetermineCenter() {
 
 function load() {
     DetermineCenter();
-    container = document.getElementById('mapDiv');
+    container = $('#mapDiv');
     var myOptions = {
         mapTypeControlOptions: {
             mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'Easy']
@@ -692,11 +693,7 @@ function load() {
     };
     var jayzMapType = new google.maps.StyledMapType(stylez, styledMapOptions);
     map.mapTypes.set('Easy', jayzMapType);
-    //xActive = addOverlay( 't_' + maptype + '-' + datatype );
-    //xActive.show();
-    //xActive.setOpacity(opacity);
     //----add the labels overlay
-    //var layerID = 5;
     var overlayMap = new google.maps.ImageMapType(overlayMaps[0]);
     map.overlayMapTypes.setAt(1, overlayMap);
     var xActive = new google.maps.ImageMapType(cjMaps[0]);
@@ -704,43 +701,27 @@ function load() {
     google.maps.event.addListener(map, 'zoom_changed', function () {
         zoomLevel = map.getZoom();
         //alert( zoomLevel );
-        //$(document.getElementById("xPanel")).css("visibility", "hidden");
-        document.getElementById("zoom_div").innerHTML = "Zoom: " + zoomLevel;
-        document.getElementById("xChatter").innerHTML = xZoomChatters[zoomLevel];
+        $("#zoom_div").html("Zoom: " + zoomLevel);
+        $("#xChatter").html(xZoomChatters[zoomLevel]);
         activeClick = 0;
     });
     google.maps.event.addListener(map, 'click', function (event) {
         getClickLocation(event.latLng);
-        //alert( map.getCenter() );
     });
     if (fc) {
         google.maps.event.addListener(map, 'mouseup', function () {
-            document.getElementById("info_div").innerHTML = map.getCenter();
+            $("#info_div").html(map.getCenter());
         });
     }
-    //google.maps.event.addListener(map, 'dblclick', function(event) {
-    //alert( 'zoom');
-    //});
-    //clickCat( 1 );
     clickDat(3);
-    $(document.getElementById("xHelpBox")).hide(); //hide help box
-    //$( document.getElementById("xInfoBox") ).hide();
+    $("#xHelpBox").hide(); //hide help box
     //------------------------------this is the functionality for the hover on the choose map type box
     $("#xChooseBox").hover(
 
     function () {}, function () {
-        //$(document.getElementById("xChooseBox")).css("visibility", "hidden");
-        $(document.getElementById("xChooseBox")).hide();
+        $("#xChooseBox").hide();
     });
-    //xObject = document.getElementById("cat_but_1");
-    //$(xObject).addClass('cat_selected');
-    //print_data_buttons( category );
-    //xObject = document.getElementById("data_but_1" );
-    //$(xObject).addClass('data_selected');
 }
-//function ChangexPanelHeight( xHeight ) {
-//$(document.getElementById("xPanelContent")).css("height", xHeight + "px");
-//}
 
 
 function ChangeLabelVis(xitem) {
@@ -819,44 +800,42 @@ function getData(state, county, third, postal, statename, latlng) {
             if ((data != '') && (activeClick)) {
                 $('#data_box_3').dialog('open');
                 data = data.split("~");
-                //ChangexPanelHeight( 270 );
-                //$(document.getElementById("xPanel")).css("visibility", "visible");
-                $(document.getElementById("side_bar_3")).css("visibility", "visible");
-                document.getElementById("hd_3").innerHTML = data[0].toUpperCase();
-                document.getElementById("x2").innerHTML = '2010 Population: ' + Comma(data[1]);
-                document.getElementById("x3").innerHTML = data[2] + '%';
-                $(document.getElementById("x6")).css("width", 0.95 * data[4] + "px");
-                document.getElementById("x7").innerHTML = data[4] + '%';
-                $(document.getElementById("x7")).css("left", ((0.95 * data[4]) + 14) + "px");
-                document.getElementById("x8").innerHTML = data[13] + '%';
-                $(document.getElementById("x10")).css("width", 0.95 * data[5] + "px");
-                document.getElementById("x11").innerHTML = data[5] + '%';
-                $(document.getElementById("x11")).css("left", ((0.95 * data[5]) + 14) + "px");
-                document.getElementById("x12").innerHTML = data[14] + '%';
-                $(document.getElementById("x14")).css("width", 0.95 * data[6] + "px");
-                document.getElementById("x15").innerHTML = data[6] + '%';
-                $(document.getElementById("x15")).css("left", ((0.95 * data[6]) + 14) + "px");
-                document.getElementById("x16").innerHTML = data[15] + '%';
-                $(document.getElementById("x18")).css("width", 0.95 * data[7] + "px");
-                document.getElementById("x19").innerHTML = data[7] + '%';
-                $(document.getElementById("x19")).css("left", ((0.95 * data[7]) + 14) + "px");
-                document.getElementById("x20").innerHTML = data[16] + '%';
-                $(document.getElementById("x22")).css("width", 0.95 * data[8] + "px");
-                document.getElementById("x23").innerHTML = data[8] + '%';
-                $(document.getElementById("x23")).css("left", ((0.95 * data[8]) + 14) + "px");
-                document.getElementById("x24").innerHTML = data[17] + '%';
-                $(document.getElementById("x26")).css("width", 0.95 * data[10] + "px");
-                document.getElementById("x27").innerHTML = data[10] + '%';
-                $(document.getElementById("x27")).css("left", ((0.95 * data[10]) + 14) + "px");
-                document.getElementById("x28").innerHTML = data[19] + '%';
-                $(document.getElementById("x30")).css("width", 0.95 * data[9] + "px");
-                document.getElementById("x31").innerHTML = data[9] + '%';
-                $(document.getElementById("x31")).css("left", ((0.95 * data[9]) + 14) + "px");
-                document.getElementById("x32").innerHTML = data[18] + '%';
-                $(document.getElementById("x34")).css("width", 0.95 * data[11] + "px");
-                document.getElementById("x35").innerHTML = data[11] + '%';
-                $(document.getElementById("x35")).css("left", ((0.95 * data[11]) + 14) + "px");
-                document.getElementById("x36").innerHTML = data[20] + '%';
+                $("#side_bar_3").css("visibility", "visible");
+                $("#hd_3").html(data[0].toUpperCase());
+                $("#x2").html('2010 Population: ' + Comma(data[1]));
+                $("#x3").html(data[2] + '%');
+                $("#x6").css("width", 0.95 * data[4] + "px");
+                $("#x7").html(data[4] + '%');
+                $("#x7").css("left", ((0.95 * data[4]) + 14) + "px");
+                $("#x8").html(data[13] + '%');
+                $("#x10").css("width", 0.95 * data[5] + "px");
+                $("#x11").html(data[5] + '%');
+                $("#x11").css("left", ((0.95 * data[5]) + 14) + "px");
+                $("#x12").html(data[14] + '%');
+                $("#x14").css("width", 0.95 * data[6] + "px");
+                $("#x15").html(data[6] + '%');
+                $("#x15").css("left", ((0.95 * data[6]) + 14) + "px");
+                $("#x16").html(data[15] + '%');
+                $("#x18").css("width", 0.95 * data[7] + "px");
+                $("#x19").html(data[7] + '%');
+                $("#x19").css("left", ((0.95 * data[7]) + 14) + "px");
+                $("#x20").html(data[16] + '%');
+                $("#x22").css("width", 0.95 * data[8] + "px");
+                $("#x23").html(data[8] + '%');
+                $("#x23").css("left", ((0.95 * data[8]) + 14) + "px");
+                $("#x24").html(data[17] + '%');
+                $("#x26").css("width", 0.95 * data[10] + "px");
+                $("#x27").html(data[10] + '%');
+                $("#x27").css("left", ((0.95 * data[10]) + 14) + "px");
+                $("#x28").html(data[19] + '%');
+                $("#x30").css("width", 0.95 * data[9] + "px");
+                $("#x31").html(data[9] + '%');
+                $("#x31").css("left", ((0.95 * data[9]) + 14) + "px");
+                $("#x32").html(data[18] + '%');
+                $("#x34").css("width", 0.95 * data[11] + "px");
+                $("#x35").html(data[11] + '%');
+                $("#x35").css("left", ((0.95 * data[11]) + 14) + "px");
+                $("#x36").html(data[20] + '%');
                 DrawKML(zoom, data[22]);
                 activeClick = 0;
             } else {}
@@ -868,19 +847,16 @@ function getData(state, county, third, postal, statename, latlng) {
             if ((data != '') && (activeClick)) {
                 $('#data_box_4').dialog('open');
                 data = data.split("~");
-                $(document.getElementById("side_bar_4")).css("visibility", "visible");
-                document.getElementById("hd_4").innerHTML = data[0].toUpperCase();
-                document.getElementById("d2").innerHTML = '2010 Population: ' + Comma(data[1]);
-                document.getElementById("d3").innerHTML = data[2] + '%';
-                document.getElementById("d37").innerHTML = 'USA TODAY';
-                document.getElementById("d38").innerHTML = 'Diversity Index 2010';
-                document.getElementById("d39").innerHTML = data[21] + '%';
+                $("#side_bar_4").css("visibility", "visible");
+                $("#hd_4").html(data[0].toUpperCase());
+                $("#d2").html('2010 Population: ' + Comma(data[1]));
+                $("#d3").html(data[2] + '%');
+                $("#d37").html('USA TODAY');
+                $("#d38").html('Diversity Index 2010');
+                $("#d39").html(data[21] + '%');
                 DrawKML(zoom, data[22]);
                 activeClick = 0;
-            } else {
-                //$(document.getElementById("side_bar_3")).css("visibility", "hidden");
-                //visibility:visible;
-            }
+            } 
         });
     } else if (datatype == 5) {
         //-----------------------------------------------------VACANCY RATE
@@ -890,20 +866,16 @@ function getData(state, county, third, postal, statename, latlng) {
                 //Indiana~6483802~6.63~2795541~10.49~89.51
                 data = data.split("~");
                 $('#data_box_5').dialog('open');
-                $(document.getElementById("side_bar_5")).css("visibility", "visible");
-                document.getElementById("hd_5").innerHTML = data[0].toUpperCase();
-                document.getElementById("v2").innerHTML = '2010 Population: ' + Comma(data[1]);
-                document.getElementById("v3").innerHTML = data[2] + '%';
-                document.getElementById("v4").innerHTML = 'Total housing units: ' + Comma(data[3]);
-                document.getElementById("v6").innerHTML = data[5] + '%';
-                document.getElementById("v8").innerHTML = data[4] + '%';
-                $(document.getElementById("v10")).css("width", 2.70 * data[4] + "px");
+                $("#side_bar_5").css("visibility", "visible");
+                $("#hd_5").html(data[0].toUpperCase());
+                $("#v2").html('2010 Population: ' + Comma(data[1]));
+                $("#v3").html(data[2] + '%');
+                $("#v4").html('Total housing units: ' + Comma(data[3]));
+                $("#v6").html(data[5] + '%');
+                $("#v8").html(data[4] + '%');
+                $("#v10").css("width", 2.70 * data[4] + "px");
                 activeClick = 0;
                 DrawKML(zoom, data[6]);
-                //ChangexPanelHeight( 115 );
-            } else {
-                //$(document.getElementById("side_bar_5")).css("visibility", "hidden");
-                //visibility:visible;
             }
         });
     } else if (datatype == 6) {
@@ -917,18 +889,14 @@ function getData(state, county, third, postal, statename, latlng) {
                     ximage = data[11].split('<img src="');
                     ximage = ximage[1].split('" alt=');
                     ximage = ximage[0];
-                    $(document.getElementById("side_bar_6")).css("visibility", "visible");
-                    document.getElementById("hd_6").innerHTML = data[0].toUpperCase();
-                    document.getElementById("p2").innerHTML = '2010 Population: ' + Comma(data[1]);
-                    //document.getElementById("p3").innerHTML = data[2] +'%';
-                    document.getElementById("p5").innerHTML = '';
-                    $(document.getElementById("p5")).css("background-image", "url('" + ximage + "')");
+                    $("#side_bar_6").css("visibility", "visible");
+                    $("#hd_6").html(data[0].toUpperCase());
+                    $("#p2").html('2010 Population: ' + Comma(data[1]));
+                    $("#p5").html('');
+                    $("#p5").css("background-image", "url('" + ximage + "')");
                     activeClick = 0;
                     DrawKML(zoom, data[12]);
                 } else {}
-            } else {
-                //$(document.getElementById("side_bar_5")).css("visibility", "hidden");
-                //visibility:visible;
             }
         });
     } else if (datatype == 1) {
@@ -938,24 +906,17 @@ function getData(state, county, third, postal, statename, latlng) {
             if ((data != '') && (activeClick)) {
                 $('#data_box_1').dialog('open');
                 data = data.split("~");
-                //echo $row['xname'] . '~' . $row['POP100'] . '~' . $row['PctChgTotPop'] . '~' .
-                //$row['PCTHISP10'] . '~' . $row['PCTNONHISP10'] . '~' . $row['PctChgHispPop10_00'] . '~' . $row['PCTHISP00'] . '~' . $row['PCTNONHISP00'];
-                //Indiana~6483802~6.63~6.01~93.99~81.65~3.53~93.99
                 if (data.length >= 7) {
-                    $(document.getElementById("side_bar_1")).css("visibility", "visible");
-                    document.getElementById("hd_1").innerHTML = data[0].toUpperCase();
-                    document.getElementById("h2").innerHTML = '2010 Population: ' + Comma(data[1]);
-                    document.getElementById("h3").innerHTML = data[2] + '%';
-                    $(document.getElementById("h6")).css("width", 0.95 * data[3] + "px");
-                    document.getElementById("h7").innerHTML = data[3] + '%';
-                    $(document.getElementById("h7")).css("left", ((0.95 * data[3]) + 14) + "px");
-                    document.getElementById("h8").innerHTML = data[5] + '%';
+                    $("#side_bar_1").css("visibility", "visible");
+                    $("#hd_1").html(data[0].toUpperCase());
+                    $("#h2").html('2010 Population: ' + Comma(data[1]));
+                    $("#h3").html(data[2] + '%');
+                    $("#h6").css("width", 0.95 * data[3] + "px");
+                    $("#h7").html(data[3] + '%');
+                    $("#h7").css("left", ((0.95 * data[3]) + 14) + "px");
+                    $("#h8").html(data[5] + '%');
                     activeClick = 0;
                     DrawKML(zoom, data[8]);
-                    //$(document.getElementById("h10")).css("width", 0.95 * data[4] + "px");
-                    //document.getElementById("h11").innerHTML = data[4] +'%';
-                    //$(document.getElementById("h11")).css("left", ((0.95 * data[4]) + 14) + "px");
-                    //document.getElementById("h12").innerHTML = data[7] +'%';
                 } else {}
             } else {}
         });
@@ -981,7 +942,7 @@ function DrawKML(zoom, fip) {
 
 function getClickLocation(latlng) {
     activeClick = 1;
-    document.getElementById("info_div").innerHTML = '';
+    $("#info_div").html('');
     geocoder.geocode({
         'latLng': latlng
     }, function (result, status) {
@@ -1009,28 +970,25 @@ function getClickLocation(latlng) {
                         }
                     }
                 }
-                //result[0]['address_components'][component]['types'][i] == "administrative_area_level_1"
-                //document.getElementById("info_div").innerHTML = result[1].formatted_address + '<BR>' + county + ' County<BR>' + state + '<BR>' + third + '<BR>' + postal;
                 if ((activeClick) && (county != '')) {
                     //alert('getdata: ' + county);
                     getData(state, county, third, postal, statename, latlng);
-                    $(document.getElementById("side_bar_" + datatype)).css("visibility", "hidden");
+                    $("#side_bar_" + datatype).css("visibility", "hidden");
                     if (xKML != 0) {
                         xKML.setMap(null);
                     }
                 } else {
                     if (activeClick) {
-                        document.getElementById("info_div").innerHTML = 'Error: Google could not pinpoint last click location';
+                        $("#info_div").html('Error: Google could not pinpoint last click location');
                     }
                 }
             } else {
                 //alert("No results found");
-                //document.getElementById("hd_1").innerHTML = data[0].toUpperCase();
-                document.getElementById("info_div").innerHTML = '';
+                $("#info_div").html('');
             }
         } else {
             //alert("Geocoder failed due to: " + status);
-            document.getElementById("info_div").innerHTML = '';
+            $("#info_div").html('');
         }
     });
 }
@@ -1053,54 +1011,33 @@ function ChangeOpacity(xChoice) {
 
 function clickCat(xChoice) {
     if (category != xChoice) {
-        //first turn off the already selected category
-        //xObject = document.getElementById("cat_but_" + category );
-        //$(xObject).css("color","#999999");
-        //$(xObject).css("font-weight","normal");
-        //$(xObject).addClass('category_buttons');
-        //$(xObject).removeClass('cat_selected')
-        //now hilite the new category
-        //xObject = document.getElementById("cat_but_" + xChoice );
-        //$(xObject).css("color","black");
-        //$(xObject).css("font-weight","bold");
-        //$(xObject).addClass('cat_selected');
         category = xChoice;
-        //print_data_buttons( category );
-        //$(document.getElementById("xPanel")).css("visibility", "hidden");
         dataChose = 0; //this keeps clickDat working
-        //clickDat( 1 );
     }
 }
 
 function clickDat(xChoice) {
     if (datatype != xChoice) {
         map.overlayMapTypes.setAt(0, null);
-        $(document.getElementById("dt" + datatype)).removeClass('xmaptypeactive');
-        $(document.getElementById("dt" + datatype)).addClass('xmaptype');
+        $("#dt" + datatype).removeClass('xmaptypeactive');
+        $("#dt" + datatype).addClass('xmaptype');
         datatype = xChoice;
         xActive = new google.maps.ImageMapType(cjMaps[0]);
         map.overlayMapTypes.setAt(0, xActive);
-        //$(document.getElementById("xChooseBox")).css("visibility", "hidden");
-        $(document.getElementById("xChooseBox")).hide();
-        $(document.getElementById("dt" + datatype)).addClass('xmaptypeactive');
-        $(document.getElementById("dt" + datatype)).removeClass('xmaptype');
-        $(document.getElementById("data_box_1")).dialog("close");
-        $(document.getElementById("data_box_3")).dialog("close");
-        $(document.getElementById("data_box_4")).dialog("close");
-        $(document.getElementById("data_box_5")).dialog("close");
-        $(document.getElementById("data_box_6")).dialog("close");
-        $(document.getElementById("topper")).focus();
-        //$( "#dialog2" ).dialog( 'close' );
-        //$( '#dialog' ).dialog('open');
-        //$(document.getElementById("xPanel")).css("visibility", "hidden");
+        $("#xChooseBox").hide();
+        $("#dt" + datatype).addClass('xmaptypeactive');
+        $("#dt" + datatype).removeClass('xmaptype');
+        $("#data_box_1").dialog("close");
+        $("#data_box_3").dialog("close");
+        $("#data_box_4").dialog("close");
+        $("#data_box_5").dialog("close");
+        $("#data_box_6").dialog("close");
+        $("#topper").focus();
         ChangeDataType(datatype);
-        document.getElementById("xTitle").innerHTML = xHeadlines[datatype];
-        document.getElementById("xChatter").innerHTML = xZoomChatters[map.getZoom()];
-        //xObject = document.getElementById("keybox" );
-        //$( xObject ).css("background-image","images/key_"+ datatype +".png");
+        $("#xTitle").html(xHeadlines[datatype]);
+        $("#xChatter").html(xZoomChatters[map.getZoom()]);
         //alert( "images/key_"+ datatype +".png" );
-        document.getElementById("keybox").innerHTML = '<img src="images/key_' + datatype + '.png" alt="" />';
-        //document.getElementById("keybox").innerHTML = '<img src="images/key_3-3.png" alt="" />';
+        $("#keybox").html('<img src="images/key_' + datatype + '.png" alt="" />');
     }
 }
 
@@ -1128,18 +1065,13 @@ function InputAddress(xChoice) {
     });
 }
 window.onload = load;
-//xdataWindows = Array( Array( 'PER SQ MILE', 'TOTAL', '% CHANGE FROM 2000' ), Array( 'DIVERSITY INDEX', 'MINORITY PREVELANCE', 'HISPANIC RATIO' ), Array( 'VACANCY RATE', '% CHANGE FROM 2000' ) );
-//xdataWindows = Array( Array( "% CHANGE FROM '00", 'PER SQ MILE' ), Array( 'LARGEST MINORITY', 'DIVERSITY INDEX' ), Array( 'VACANCY RATE' ) );
-//xdataWindows = Array('', '', '', "% CHANGE FROM '00", 'PER SQ MILE' ), Array( 'LARGEST MINORITY', 'DIVERSITY INDEX' ), Array( 'VACANCY RATE' ) );
-//xdataTypes = Array( Array( 3, 2 ), Array( 6,4 ), Array( 5,1 ) );
 xHeadlines = Array('', 'Percent hispanic population 2010', '2010 Population per square mile', 'Percent change in total population 2010-2000', 'USA TODAY Diversity Index 2010', 'Percent housing units vacant 2010', 'Largest minority excluding white, not hispanic');
 xZoomChatters = Array('', '', '', '', 'Zoom for more detail. Color coded by county. Click to get state information.', 'Zoom for more detail. Color coded by county. Click to get county information.', 'Zoom for more detail. Color coded by county. Click to get county information.', 'Zoom for more detail. Color coded by county. Click to get county information.', 'Color coded by tract. Click to get county information.', 'Color coded by tract. Click to get tract information.', 'Color coded by tract. Click to get tract information.', 'Color coded by tract. Click to get tract information.', 'Color coded by tract. Click to get tract information.');
-//visibility:visible;
 //-------jquery UI
 $(function () {
     $('#dialog_link').mouseover(function () {
         var options = {};
-        $(document.getElementById("xChooseBox")).show();
+        $("#xChooseBox").show();
         return false;
     });
     //hover states on the static widgets
@@ -1154,25 +1086,25 @@ $(function () {
 
     function () {
         $(this).addClass('ui-state-hover');
-        $(document.getElementById("xHelpBox")).show();
-        $(document.getElementById("xHelpBox")).css("width", $('#mapDiv').width() + 'px');
-        $(document.getElementById("xHelpBox")).css("height", $('#mapDiv').height() + 'px');
+        $("#xHelpBox").show();
+        $("#xHelpBox").css("width", $('#mapDiv').width() + 'px');
+        $("#xHelpBox").css("height", $('#mapDiv').height() + 'px');
     }, function () {
         $(this).removeClass('ui-state-hover');
-        $(document.getElementById("xHelpBox")).hide();
+        $("#xHelpBox").hide();
     });
     $('#infobutton').hover(
 
     function () {
         $(this).addClass('ui-state-hover');
-        $(document.getElementById("xInfoBox")).css("visibility", "visible");
+        $("#xInfoBox").css("visibility", "visible");
     }, function () {
         $(this).removeClass('ui-state-hover');
     });
     $('#xInfoBox').hover(
 
     function () {}, function () {
-        $(document.getElementById("xInfoBox")).css("visibility", "hidden");
+        $("#xInfoBox").css("visibility", "hidden");
     });
     $('#data_box_6').dialog({
         autoOpen: false,
