@@ -39,27 +39,27 @@ var overlayMaps = [
 // These are simply ImageMapTypeOptions we keep to create ImageMapTypes on demand when checkboxes are clicked - opacity:0.9,
 {
     getTileUrl: function (coord, zoom) {
-												switch (zoom) {
-																case 6:
-																				apistyle = 'p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
-																				break;
-																case 7:
-																				apistyle = 'p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
-																				break;
-																case 8:
-																				apistyle = 'p.v:off,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
-																				break;
-																case 9:
-																case 10:
-																				apistyle = 'p.v:off,s.t:49|p.s:-100|p.g:0.01|p.v:simplified,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
-																				break;
-																case 11:
-																				apistyle = 'p.v:off,s.t:49|s.e:g|p.v:simplified|p.s:-100|p.g:0.01,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
-																				break;
-																default:
-            														apistyle = labelStyleOut;
-												}
-        								return 'http://mt1.googleapis.com/vt?lyrs=h@142&src=apiv3&hl=en-US&apistyle=' + apistyle + '&x=' + coord.x + '&y=' + coord.y + '&z=' + zoom + '&s=Galile';
+            switch (zoom) {
+                case 6:
+                        apistyle = 'p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
+                        break;
+                case 7:
+                        apistyle = 'p.v:off,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
+                        break;
+                case 8:
+                        apistyle = 'p.v:off,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
+                        break;
+                case 9:
+                case 10:
+                        apistyle = 'p.v:off,s.t:49|p.s:-100|p.g:0.01|p.v:simplified,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
+                        break;
+                case 11:
+                        apistyle = 'p.v:off,s.t:49|s.e:g|p.v:simplified|p.s:-100|p.g:0.01,s.t:3|p.s:-100|p.g:0.01|p.v:simplified,s.t:1|s.e:g|p.v:on|p.g:0.04|p.il:true,s.t:19|s.e:l|p.il:true|p.g:0.01|p.v:on,s.t:18|s.e:l|p.v:on|p.il:true|p.g:0.01';
+                        break;
+                default:
+                        apistyle = labelStyleOut;
+        }
+        return 'http://mt1.googleapis.com/vt?lyrs=h@142&src=apiv3&hl=en-US&apistyle=' + apistyle + '&x=' + coord.x + '&y=' + coord.y + '&z=' + zoom + '&s=Galile';
     },
     tileSize: new google.maps.Size(256, 256),
     isPng: true
