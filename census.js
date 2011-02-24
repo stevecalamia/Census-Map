@@ -958,19 +958,19 @@ function getClickLocation(latlng) {
                 postal = '';
                 statename = '';
                 for (var component in result[1]['address_components']) {
-                    for (var i in result[1]['address_components'][component]['types']) {
-                        if (result[1]['address_components'][component]['types'][i] == "administrative_area_level_1") {
-                            state = result[1]['address_components'][component]['short_name'];
-                            statename = result[1]['address_components'][component]['long_name'];
+                    for (var i in component['types']) {
+                        if (i == "administrative_area_level_1") {
+                            state = component['short_name'];
+                            statename = component['long_name'];
                         }
-                        if (result[1]['address_components'][component]['types'][i] == "administrative_area_level_2") {
-                            county = result[1]['address_components'][component]['long_name'];
+                        if (i == "administrative_area_level_2") {
+                            county = component['long_name'];
                         }
-                        if (result[1]['address_components'][component]['types'][i] == "administrative_area_level_3") {
-                            third = result[1]['address_components'][component]['long_name'];
+                        if (i == "administrative_area_level_3") {
+                            third = component['long_name'];
                         }
-                        if (result[1]['address_components'][component]['types'][i] == "postal_code") {
-                            postal = result[1]['address_components'][component]['long_name'];
+                        if (i == "postal_code") {
+                            postal = component['long_name'];
                         }
                     }
                 }
